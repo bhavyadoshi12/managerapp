@@ -48,16 +48,18 @@ def get_ocr_reader():
 
 def add_pdf_watermark(canvas, doc):
     """Draws a light watermark in the center of the PDF page."""
+    from django.contrib.staticfiles import finders
     canvas.saveState()
     try:
-        img_path = os.path.join(settings.BASE_DIR, 'core', 'static', 'core', 'pwa', 'TheManager.jpeg')
-        if os.path.exists(img_path):
-            canvas.setFillAlpha(0.08)  # Very light watermark
+        # Use finders to get the correct path in production/Vercel
+        img_path = finders.find('core/pwa/TheManager.jpeg')
+        if img_path:
+            canvas.setFillAlpha(0.15)  # Slightly darker for better visibility
             w, h = doc.pagesize
-            # Center the logo (200x200 size)
+            # Center the logo (7cm x 7cm)
             canvas.drawImage(img_path, w/2 - 3.5*cm, h/2 - 3.5*cm, width=7*cm, height=7*cm, mask='auto', preserveAspectRatio=True)
-    except:
-        pass
+    except Exception as e:
+        print(f"Watermark rendering error: {e}")
     canvas.restoreState()
 
 User = get_user_model()
@@ -608,11 +610,17 @@ def generate_proof_receipt(request, proof_id):
 
     # Permission Check
     can_view = False
-    if request.user.role == 'secretary' or request.user.role == 'admin':
+    u_soc = (request.user.society_name or "").strip().lower()
+    
+    if request.user.role in ['secretary', 'admin']:
         # Admin/Secretary can view if it belongs to their society
-        if hasattr(proof, 'society_name') and proof.society_name == request.user.society_name:
-            can_view = True
-        elif hasattr(proof, 'owner') and proof.owner.society_name == request.user.society_name:
+        p_soc = ""
+        if hasattr(proof, 'society_name'):
+            p_soc = (proof.society_name or "").strip().lower()
+        elif hasattr(proof, 'owner'):
+            p_soc = (proof.owner.society_name or "").strip().lower()
+            
+        if p_soc == u_soc and u_soc != "":
             can_view = True
     elif hasattr(proof, 'user') and proof.user == request.user:
         can_view = True
@@ -647,9 +655,9 @@ def generate_proof_receipt(request, proof_id):
         ['Unit No.', user_for_receipt.unit_number or '—'],
         ['Month', proof.created_at.strftime('%B %Y')],
         ['Transaction ID', proof.transaction_id or 'SOCIETY_INTERNAL'],
-        ['Amount Paid', f'Rs. {proof.extracted_amount}'],
+        ['Amount Paid', f'Rs. {proof.extracted_amount or "0.00"}'],
         ['Status', 'Verified'],
-        ['Date', str(proof.created_at.date())],
+        ['Date', str(proof.extracted_date or proof.created_at.date())],
     ]
     table = Table(data, colWidths=[6*cm, 10*cm])
     table.setStyle(TableStyle([
