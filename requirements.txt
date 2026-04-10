@@ -1,0 +1,8 @@
+Django>=5.0
+django-lucide
+whitenoise
+gunicorn
+python-dotenv
+Pillow
+numpy
+reportlab
