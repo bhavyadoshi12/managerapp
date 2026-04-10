@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'resident',
     'admin_panel',
     'company_panel',
+    'storages',
 ]
 
 AUTH_USER_MODEL = 'core.User'
@@ -146,3 +147,23 @@ RAZORPAY_KEY_SECRET = 'YOUR_RAZORPAY_KEY_SECRET'
 CSRF_USE_SESSIONS = True
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
+
+# AWS S3 / Supabase Storage Configuration for Serverless Media
+if os.environ.get('AWS_ACCESS_KEY_ID'):
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL')
+    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'ap-southeast-1')
+    
+    # Custom domain is required for Supabase Storage to reconstruct URLs properly
+    AWS_S3_CUSTOM_DOMAIN = f"{AWS_S3_ENDPOINT_URL.split('://')[1]}/{AWS_STORAGE_BUCKET_NAME}"
+
+    AWS_DEFAULT_ACL = 'public-read'
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+    }
+
+    # Use S3 for Media
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
