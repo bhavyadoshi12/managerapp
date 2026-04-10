@@ -248,49 +248,80 @@
 
 <!-- Upload Modal -->
 <div id="upload-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-textdark/40 backdrop-blur-sm" onclick="this.parentElement.classList.add('hidden')">
+    <div class="absolute inset-0 bg-textdark/40 backdrop-blur-sm" onclick="closeModals()">
     </div>
     <div
         class="bg-white rounded-[2.5rem] w-full max-w-lg p-8 shadow-2xl relative animate-in fade-in zoom-in duration-200">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-extrabold text-textdark tracking-tight">Upload Proof</h2>
-            <button onclick="this.closest('#upload-modal').classList.add('hidden')"
-                class="p-2 text-muted hover:text-textdark">
+            <button onclick="closeModals()" class="p-2 text-muted hover:text-textdark">
                 <i data-lucide="x" class="w-6 h-6"></i>
             </button>
         </div>
 
-        <form method="post" enctype="multipart/form-data" class="space-y-6" onsubmit="handleFormSubmit(this)">
+        <form id="upload-form" method="post" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
+            <input type="hidden" name="final_amount" id="final-amount">
+            <input type="hidden" name="final_date" id="final-date">
+            <input type="hidden" name="final_txn_id" id="final-txn-id">
+            
             <div class="relative group">
-                <input type="file" name="proof_image" accept="image/*" required
+                <input type="file" name="proof_image" id="proof-image-input" accept="image/*" required
                     class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="previewImage(this)">
                 <div id="drop-zone"
                     class="bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl p-12 flex flex-col items-center justify-center text-center group-hover:border-primary group-hover:bg-blue-50/50 transition-all">
-                    <div
-                        class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 group-hover:shadow-primary/20 transition-all">
+                    <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-all">
                         <i data-lucide="image" class="w-8 h-8 text-primary"></i>
                     </div>
-                    <p class="text-sm font-bold text-textdark">Click or drag payment screenshot</p>
-                    <p class="text-xs text-muted font-medium mt-1">PNG, JPG up to 10MB</p>
+                    <p class="text-sm font-bold text-textdark">Select payment screenshot</p>
                     <div id="preview-container" class="hidden mt-4">
-                        <img id="preview" class="rounded-xl max-h-40 border border-bordercolor shadow-md shadow-black/5 mx-auto">
+                        <img id="preview" class="rounded-xl max-h-40 border border-bordercolor shadow-md mx-auto">
                     </div>
                 </div>
             </div>
 
-            <div class="bg-blue-50/80 p-4 rounded-2xl border border-blue-100 flex gap-3">
-                <i data-lucide="sparkles" class="w-5 h-5 text-primary flex-shrink-0"></i>
-                <p class="text-[11px] font-bold text-blue-800 leading-relaxed">
-                    Our AI scans your screenshot to verify the payment date automatically. Please bring symbols and date clearly into view.
-                </p>
-            </div>
-
-            <button type="submit" id="submit-btn"
+            <button type="button" id="scan-btn" onclick="startOCRScan()"
                 class="w-full bg-primary hover:bg-blue-700 text-white font-black rounded-2xl py-4 uppercase tracking-widest text-xs shadow-xl shadow-primary/30 transition-all flex justify-center items-center gap-2">
-                <i data-lucide="check" class="w-5 h-5"></i> Submit Proof
+                <i data-lucide="sparkles" class="w-5 h-5"></i> Scan & Verify
             </button>
+            <div id="scan-loading" class="hidden text-center py-2 animate-pulse">
+                <p class="text-[10px] font-black text-primary uppercase tracking-widest">AI is reading the receipt...</p>
+            </div>
         </form>
+    </div>
+</div>
+
+<!-- Review & Edit Modal (Popup) -->
+<div id="review-modal" class="fixed inset-0 z-[110] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-textdark/60 backdrop-blur-md"></div>
+    <div class="bg-white rounded-[2.5rem] w-full max-w-lg p-8 shadow-2xl relative animate-in slide-in-from-bottom duration-300">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="check-square" class="w-8 h-8 text-primary"></i>
+            </div>
+            <h2 class="text-2xl font-black text-textdark tracking-tight">Review Details</h2>
+            <p class="text-xs text-muted font-bold uppercase tracking-widest mt-1">Confirmed by AI (Edit if needed)</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                <label class="text-[9px] font-black text-muted uppercase tracking-widest block mb-1">Amount (₹)</label>
+                <input type="text" id="review-amount" class="w-full bg-transparent text-lg font-black text-textdark focus:outline-none">
+            </div>
+            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                <label class="text-[9px] font-black text-muted uppercase tracking-widest block mb-1">Transaction Date</label>
+                <input type="text" id="review-date" class="w-full bg-transparent text-lg font-black text-textdark focus:outline-none" placeholder="DD/MM/YYYY">
+            </div>
+            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                <label class="text-[9px] font-black text-muted uppercase tracking-widest block mb-1">Transaction/Ref ID</label>
+                <input type="text" id="review-txn" class="w-full bg-transparent text-lg font-black text-textdark focus:outline-none" placeholder="Optional">
+            </div>
+        </div>
+
+        <div class="mt-8 flex gap-3">
+            <button onclick="document.getElementById('review-modal').classList.add('hidden')" class="flex-1 px-6 py-4 border border-bordercolor text-textdark font-black rounded-2xl uppercase tracking-widest text-[10px] hover:bg-gray-50 transition-all">Cancel</button>
+            <button onclick="submitFinalProof()" class="flex-1 px-6 py-4 bg-primary text-white font-black rounded-2xl uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20 hover:bg-blue-700 transition-all">Save & Submit</button>
+        </div>
     </div>
 </div>
 
@@ -305,16 +336,26 @@
     }
 </style>
 
+<!-- Full Image View Modal -->
+<div id="image-modal" class="fixed inset-0 z-[120] hidden items-center justify-center p-4 bg-black/90 backdrop-blur-sm" onclick="this.classList.add('hidden')">
+    <div class="relative max-w-4xl w-full h-full flex items-center justify-center">
+        <img id="modal-img" src="" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl">
+        <button class="absolute top-4 right-4 text-white p-2">
+            <i data-lucide="x" class="w-8 h-8"></i>
+        </button>
+    </div>
+</div>
+
 <script>
-    function handleFormSubmit(form) {
-        // Show loader, hide modal
-        document.getElementById('top-loader').classList.remove('hidden');
+    function openImageModal(url) {
+        document.getElementById('modal-img').src = url;
+        document.getElementById('image-modal').classList.remove('hidden');
+    }
+
+    function closeModals() {
         document.getElementById('upload-modal').classList.add('hidden');
-        
-        // Disable button to prevent double-submit
-        const btn = document.getElementById('submit-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="w-5 h-5 animate-spin border-2 border-white border-t-transparent rounded-full"></i> Uploading...';
+        document.getElementById('review-modal').classList.add('hidden');
+        document.getElementById('image-modal').classList.add('hidden');
     }
 
     function previewImage(input) {
@@ -326,13 +367,74 @@
             reader.onload = function (e) {
                 preview.src = e.target.result;
                 previewContainer.classList.remove('hidden');
-                // Hide existing elements in drop-zone
-                dropZone.querySelectorAll('div, p:not(#preview-container p)').forEach(el => {
-                    if (el.id !== 'preview-container') el.classList.add('hidden');
-                });
+                dropZone.querySelectorAll(':scope > div:not(#preview-container), p').forEach(el => el.classList.add('hidden'));
             }
             reader.readAsDataURL(input.files[0]);
         }
     }
+
+    async function startOCRScan() {
+        const fileInput = document.getElementById('proof-image-input');
+        const scanBtn = document.getElementById('scan-btn');
+        const loading = document.getElementById('scan-loading');
+
+        if (!fileInput.files[0]) {
+            alert("Please select an image first.");
+            return;
+        }
+
+        scanBtn.disabled = true;
+        scanBtn.classList.add('opacity-50');
+        loading.classList.remove('hidden');
+
+        const formData = new FormData();
+        formData.append('proof_image', fileInput.files[0]);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        try {
+            const response = await fetch("{% url 'process_ocr_preview' %}", {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('review-amount').value = data.amount || "";
+                document.getElementById('review-date').value = data.date || "";
+                document.getElementById('review-txn').value = data.txn_id || "";
+                document.getElementById('review-modal').classList.remove('hidden');
+                document.getElementById('upload-modal').classList.add('hidden');
+            } else {
+                alert("AI could not read the image Clearly. Opening manual entry.");
+                document.getElementById('review-modal').classList.remove('hidden');
+                document.getElementById('upload-modal').classList.add('hidden');
+            }
+        } catch (error) {
+            document.getElementById('review-modal').classList.remove('hidden');
+            document.getElementById('upload-modal').classList.add('hidden');
+        } finally {
+            scanBtn.disabled = false;
+            scanBtn.classList.remove('opacity-50');
+            loading.classList.add('hidden');
+        }
+    }
+
+    function submitFinalProof() {
+        const amount = document.getElementById('review-amount').value;
+        const date = document.getElementById('review-date').value;
+        const txn = document.getElementById('review-txn').value;
+
+        if (!amount || !date) {
+            alert("Amount and Date are required.");
+            return;
+        }
+
+        document.getElementById('final-amount').value = amount;
+        document.getElementById('final-date').value = date;
+        document.getElementById('final-txn-id').value = txn;
+        document.getElementById('top-loader').classList.remove('hidden');
+        document.getElementById('upload-form').submit();
+    }
 </script>
 {% endblock %}
+block %}
