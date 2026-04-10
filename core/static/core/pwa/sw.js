@@ -1,4 +1,4 @@
-const CACHE_NAME = 'themanager-v1';
+const CACHE_NAME = 'themanager-v2';
 const urlsToCache = [
   '/',
   '/static/core/pwa/manifest.json',
@@ -6,21 +6,32 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
   );
 });
 
-self.addEventListener('fetch', event => {
-  // Only handle GET requests for caching
-  if (event.request.method !== 'GET') return;
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.filter(name => name !== CACHE_NAME)
+            .map(name => caches.delete(name))
+        );
+      })
+    ])
+  );
+});
 
-  // Fix: Do not intercept external CDN requests (Tailwind, Lucide, etc.) to avoid CORS issues
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
   if (event.request.url.startsWith('http') && !event.request.url.includes(self.location.origin)) {
     return;
   }
-
   event.respondWith(
     caches.match(event.request)
       .then(response => response || fetch(event.request))
