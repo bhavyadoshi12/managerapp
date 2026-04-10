@@ -152,10 +152,14 @@ STORAGES = {
 RAZORPAY_KEY_ID = 'YOUR_RAZORPAY_KEY_ID'
 RAZORPAY_KEY_SECRET = 'YOUR_RAZORPAY_KEY_SECRET'
 
-# CSRF Stability Fix
-CSRF_USE_SESSIONS = True
+# CSRF Stability Fix for Vercel
+CSRF_USE_SESSIONS = False # Better for Vercel with standard cookie-based CSRF
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = True
+CSRF_TRUSTED_ORIGINS = [
+    'https://managerapp-six.vercel.app',
+]
 
 # AWS S3 / Supabase Storage Configuration for Serverless Media
 if os.environ.get('AWS_ACCESS_KEY_ID'):
@@ -165,10 +169,15 @@ if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL')
     AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'ap-southeast-1')
     
-    AWS_S3_CUSTOM_DOMAIN = f"{AWS_S3_ENDPOINT_URL.split('://')[1]}/{AWS_STORAGE_BUCKET_NAME}"
+    # FIX: Use Supabase /object/public/ gateway for browser-accessible URLs
+    project_host = AWS_S3_ENDPOINT_URL.split('://')[1].replace('/s3', '')
+    AWS_S3_CUSTOM_DOMAIN = f"{project_host}/object/public/{AWS_STORAGE_BUCKET_NAME}"
+    
     # Reverted to Public ACL: S3 Signed URLs break standard HTML5 <video> streaming tags on Mobile/Safari.
     AWS_DEFAULT_ACL = 'public-read'
     AWS_QUERYSTRING_AUTH = False
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_S3_SIGN_IN_URL_QUERY_PARAM = False
 
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
