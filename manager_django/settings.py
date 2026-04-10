@@ -85,25 +85,15 @@ WSGI_APPLICATION = 'manager_django.wsgi.application'
 
 import dj_database_url
 
-# WARNING: SQLite will NOT persist data on Vercel. 
-# Every redeploy or function spin-down will reset your database.
-# In Production (Vercel), we expect DATABASE_URL to point to Supabase PostgreSQL.
-if os.environ.get('DATABASE_URL'):
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.environ.get('DATABASE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
-else:
-    # Local fallback to SQLite
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+# We are strictly using Supabase PostgreSQL now instead of SQLite.
+# Make sure to provide 'DATABASE_URL' in Vercel Environment Variables.
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
 
 
 # Password validation
