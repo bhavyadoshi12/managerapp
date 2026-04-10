@@ -13,6 +13,7 @@ urlpatterns = [
     path('maintenance/', views.maintenance_view, name='maintenance'),
     path('gate-records/', views.gate_records, name='gate_records'),
     path('receipt/download/<int:proof_id>/', views.generate_proof_receipt, name='generate_proof_receipt'),
+    path('maintenance/delete-proof/<int:proof_id>/', views.delete_payment_proof, name='delete_payment_proof'),
     
     # API Endpoints
     path('api/register/', api_views.register_user, name='api_register'),

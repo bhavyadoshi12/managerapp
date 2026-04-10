@@ -91,7 +91,7 @@ import dj_database_url  # type: ignore
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
+        conn_max_age=0,  # SPEED FIX: Set to 0 to prevent hanging connections on serverless
         conn_health_checks=True,
     )
 }
@@ -166,7 +166,12 @@ if os.environ.get('AWS_ACCESS_KEY_ID'):
     AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'ap-southeast-1')
     
     AWS_S3_CUSTOM_DOMAIN = f"{AWS_S3_ENDPOINT_URL.split('://')[1]}/{AWS_STORAGE_BUCKET_NAME}"
-    AWS_DEFAULT_ACL = 'public-read'
+    
+    # PRIVACY FIX: Private ACL and Signed URLs
+    AWS_DEFAULT_ACL = 'private'
+    AWS_QUERYSTRING_AUTH = True
+    AWS_QUERYSTRING_EXPIRE = 3600  # Links automatically expire in 1 hour
+
     AWS_S3_OBJECT_PARAMETERS = {
         'CacheControl': 'max-age=86400',
     }
