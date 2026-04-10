@@ -12,3 +12,5 @@ requests
 django-storages
 boto3
 pillow-heif
+easyocr
+opencv-python-headless

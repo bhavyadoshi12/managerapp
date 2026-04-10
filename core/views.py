@@ -227,9 +227,6 @@ def maintenance_view(request):
             image_bytes = proof.proof_image.read()
             proof.proof_image.close()
             
-            from PIL import Image
-            import numpy as np
-            
             img = Image.open(BytesIO(image_bytes)).convert('RGB')
             results = reader.readtext(np.array(img))
             extracted_text = " ".join([res[1] for res in results])
