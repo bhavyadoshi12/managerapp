@@ -156,12 +156,12 @@
                             {% if user.role == 'secretary' and proof.status != 'approved' and proof.status != 'verified' %}
                                 <!-- Secretary Action Buttons -->
                                 <div class="flex items-center gap-2">
-                                    <button onclick="verifyProof({{ proof.id }}, 'approve', this)" 
-                                       class="px-4 py-1.5 bg-green-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-green-200 hover:bg-green-700 transition-all active:scale-90">
+                                    <button data-proof-id="{{ proof.id }}" data-action="approve" 
+                                       class="verify-btn px-4 py-1.5 bg-green-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-green-200 hover:bg-green-700 transition-all active:scale-90">
                                         <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Accept
                                     </button>
-                                    <button onclick="verifyProof({{ proof.id }}, 'reject', this)" 
-                                       class="px-4 py-1.5 bg-rose-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-90">
+                                    <button data-proof-id="{{ proof.id }}" data-action="reject" 
+                                       class="verify-btn px-4 py-1.5 bg-rose-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-90">
                                         <i data-lucide="x-circle" class="w-3.5 h-3.5"></i> Reject
                                     </button>
                                 </div>
@@ -405,6 +405,16 @@
             aiStatus.innerHTML = '<p class="text-[9px] text-red-500 font-black uppercase tracking-widest">! AI Unavailable (Manual OK)</p>';
         }
     }
+
+    // Setup verify buttons listener
+    document.addEventListener('click', e => {
+        const btn = e.target.closest('.verify-btn');
+        if (btn) {
+            const id = btn.getAttribute('data-proof-id');
+            const action = btn.getAttribute('data-action');
+            verifyProof(id, action, btn);
+        }
+    });
 
     async function verifyProof(id, action, btn) {
         const parent = btn.parentElement;
