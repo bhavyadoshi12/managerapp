@@ -276,6 +276,8 @@
                     <p class="text-sm font-bold text-textdark">Select payment screenshot</p>
                     <div id="preview-container" class="hidden mt-4">
                         <img id="preview" class="rounded-xl max-h-40 border border-bordercolor shadow-md mx-auto">
+                    </div>
+                </div>
             </div>
         </form>
     </div>
@@ -449,15 +451,21 @@
         const date = document.getElementById('review-date').value;
         const txn = document.getElementById('review-txn').value;
 
+        console.log("Submitting final proof:", { amount, date, txn });
+
         if (!amount || !date) {
-            alert("Amount and Date are required.");
+            alert("Please provide the extracted Amount and Date.");
             return;
         }
 
         document.getElementById('final-amount').value = amount;
         document.getElementById('final-date').value = date;
         document.getElementById('final-txn-id').value = txn;
-        document.getElementById('top-loader').classList.remove('hidden');
+        
+        const loader = document.getElementById('top-loader');
+        if (loader) loader.classList.remove('hidden');
+        
+        console.log("Triggering form submit...");
         document.getElementById('upload-form').submit();
     }
 </script>

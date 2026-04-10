@@ -244,7 +244,9 @@ def maintenance_view(request):
         if is_rental:
             proof = RentPaymentProof.objects.create(rental_user=request.user, owner=request.user.owner, proof_image=proof_file)
         else:
-            proof = PaymentProof.objects.create(user=request.user, society_name=society_name, proof_image=proof_file)
+            # Safety: Ensure society_name exists
+            eff_society = society_name or (request.user.owner.society_name if hasattr(request.user, 'owner') and request.user.owner else "Global")
+            proof = PaymentProof.objects.create(user=request.user, society_name=eff_society, proof_image=proof_file)
             
         # Use provided fields or fallback to internal OCR
         if final_amount:
