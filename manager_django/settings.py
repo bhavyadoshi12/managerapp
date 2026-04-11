@@ -159,7 +159,12 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = [
     'https://managerapp-six.vercel.app',
+    'https://managerapp-pearl.vercel.app',
 ]
+
+# Standard Vercel Proxy Headers
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # AWS S3 / Supabase Storage Configuration for Serverless Media
 if os.environ.get('AWS_ACCESS_KEY_ID'):

@@ -236,6 +236,26 @@
     <script>
         lucide.createIcons();
 
+        // PWA "Nuclear Reset" - Force clear everything if stuck
+        if (window.location.search.includes('reset_pwa=true')) {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                        registration.unregister();
+                    }
+                    if ('caches' in window) {
+                        caches.keys().then(function(names) {
+                            for (let name of names) caches.delete(name);
+                        });
+                    }
+                    console.log('PWA Reset successful. Reloading...');
+                    const url = new URL(window.location);
+                    url.searchParams.delete('reset_pwa');
+                    window.location.href = url.href;
+                });
+            }
+        }
+
         // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
@@ -258,7 +278,7 @@
                         };
                     };
                 }, function (err) {
-                    console.log('ServiceWorker registration failed: ', err);
+                    console.error('ServiceWorker registration failed: ', err);
                 });
             });
         }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'themanager-v2'; // Bumped version to force reset
+const CACHE_NAME = 'themanager-v3'; // Bumped version to v3 to ensure fresh activation
 const urlsToCache = [
   '/',
   '/login/',
