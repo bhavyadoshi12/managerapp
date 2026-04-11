@@ -464,7 +464,7 @@
         lucide.createIcons();
 
         try {
-            const response = await fetch(`/verify/proof/${id}/${action}/`, {
+            const response = await fetch(`/maintenance/verify-proof/${id}/${action}/`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             const data = await response.json();
